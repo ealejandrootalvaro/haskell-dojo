@@ -17,6 +17,8 @@ import Database.PostgreSQL.Simple.URL
 import Control.Monad.IO.Class
 import Data.Text.Lazy.Encoding (decodeUtf8)
 
+import System.Environment
+
 
 data User = User { userId :: Int, userName :: String } deriving (Show, Generic)
 instance ToJSON User
