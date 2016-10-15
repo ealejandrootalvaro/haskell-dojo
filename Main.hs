@@ -15,8 +15,6 @@ import Control.Monad
 import Control.Applicative
 import Database.PostgreSQL.Simple.URL
 import Control.Monad.IO.Class
-
-
 import Data.Text.Lazy.Encoding (decodeUtf8)
 
 
