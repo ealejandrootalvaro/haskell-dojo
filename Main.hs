@@ -50,7 +50,7 @@ getAllMenus c = do
 
 main = do
   putStrLn "Starting Server..."
-  conn <- connectPostgreSQL  "postgres://bdvyfpprlpcziu:ncmVS1afX7siDrv1aybdcEEuwH@ec2-54-163-251-104.compute-1.amazonaws.com:5432/d91771v4pqfihj"
+  conn <- connectPostgreSQL  "postgres://tnymbcesgsavlj:w64hzXF9XV63blQATIr5bHxj4G@ec2-54-243-203-93.compute-1.amazonaws.com:5432/dch4plt165gtm"
   env <- getEnvironment
   let port = maybe 8080 read $ lookup "PORT" env
   scotty port $ do
