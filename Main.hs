@@ -73,7 +73,10 @@ main = do
   env <- getEnvironment
   let port = maybe 8080 read $ lookup "PORT" env
   scotty port $ do
-    
+     
+    get "/" $ do
+      text ("Bienvenido a un servicio REST construido con Haskell, ingrese a /menus para ver la lista de menus")
+
     get "/menus" $ do
       variable <- liftIO (getAllMenus conn)
       json variable
