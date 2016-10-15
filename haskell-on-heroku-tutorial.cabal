@@ -17,4 +17,4 @@ executable haskell-on-heroku-tutorial
                       text,
                       transformers,
                       warp,
-		      text, bytestring, postgresql-simple, postgresql-simple-url
+                      text, bytestring, postgresql-simple, postgresql-simple-url
