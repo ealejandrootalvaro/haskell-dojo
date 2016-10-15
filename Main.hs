@@ -70,7 +70,7 @@ main = do
     post "/menus" $ do
       menu <- (jsonData :: ActionM Menu)
       response <- liftIO (execute conn "insert into menu (name,description,price,restaurant) values (?,?,?,?)" ((name menu), (description menu), (price menu),(restaurant menu)))
-      json (user)
+      json (menu)
 
     
 
