@@ -15,4 +15,4 @@ executable hello-scotty
                       postgresql-simple-url,
                       transformers,
                       text,
-                      bytestring
+                      bytestring, HTTP, http-types
