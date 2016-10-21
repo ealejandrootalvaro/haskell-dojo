@@ -1,5 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE OverloadedStrings, DeriveGeneric, ScopedTypeVariables, ViewPatterns #-}
 
 module Main where
 
@@ -7,7 +6,7 @@ import Data.Monoid ((<>))
 import Data.Aeson (FromJSON, ToJSON)
 import GHC.Generics
 import Web.Scotty
-import Database.PostgreSQL.Simple
+import qualified Database.PostgreSQL.Simple as D
 import Database.PostgreSQL.Simple.FromRow
 import Database.PostgreSQL.Simple.ToRow
 import Database.PostgreSQL.Simple.ToField
@@ -16,19 +15,57 @@ import Control.Applicative
 import Database.PostgreSQL.Simple.URL
 import Control.Monad.IO.Class
 import Data.Text.Lazy.Encoding (decodeUtf8)
-
+import Network.HTTP.Types.Status
 import System.Environment
+import Control.Exception 
+import Database.PostgreSQL.Simple.Errors
 
                      
+data Resultado= Resultado{tipo :: Maybe String, mensaje :: Maybe String} deriving (Show,Generic)
+instance ToJSON Resultado
+
 
 data Menu = Menu { idMenu :: Maybe Int, name :: Maybe String, description :: Maybe String, price :: Maybe Int, restaurant :: Maybe Int } deriving (Show,Generic)
 instance ToJSON Menu
 instance FromJSON Menu
 
+data Client= Client{username :: Maybe String,
+                    nameClient :: Maybe String,
+                    lastname :: Maybe String,
+                    idClient:: Maybe String,
+                    email:: Maybe String,
+                    phone:: Maybe String,
+                    cellphone:: Maybe String,
+                    password:: Maybe String }
+                    deriving (Show,Generic)
+
+instance ToJSON Client
+instance FromJSON Client
+
 matchesId :: Int -> Menu -> Bool
 matchesId id menu = case idMenu menu of
         Nothing -> False
         Just int -> int == id
+
+
+success :: String
+success = "Success"
+
+error' :: String
+error' = "Error"
+
+instance FromRow Client where
+  fromRow = Client <$> field <*> field <*> field <*> field <*> field <*> field <*> field <*> field
+
+instance ToRow Client where
+  toRow d = [toField (username d),
+             toField (nameClient d),
+             toField (lastname d),
+             toField (idClient d),
+             toField (email d),
+             toField (phone d),
+             toField (cellphone d),
+             toField (password d)]
 
 
 
@@ -41,19 +78,19 @@ instance ToRow Menu where
 
 
 
-getAllMenus :: Connection -> IO [Menu]
+getAllMenus :: D.Connection -> IO [Menu]
 getAllMenus c = do
-  list <- (query_ c "select * from menu" :: IO [Menu])
+  list <- (D.query_ c "select * from menu" :: IO [Menu])
   return list
 
 
 
 main = do
   putStrLn "Starting Server..."
-  conn <- connectPostgreSQL  "postgres://tnymbcesgsavlj:w64hzXF9XV63blQATIr5bHxj4G@ec2-54-243-203-93.compute-1.amazonaws.com:5432/dch4plt165gtm"
-  env <- getEnvironment
-  let port = maybe 8080 read $ lookup "PORT" env
-  scotty port $ do
+  conn <- D.connectPostgreSQL  "postgres://xlyrtaxdwdozqh:ml6B7YXEWvGLdpcw5ty-BDrcne@ec2-50-19-240-113.compute-1.amazonaws.com:5432/dcku066iig1lq1"
+  --env <- getEnvironment
+  --let port = maybe 8080 read $ lookup "PORT" env
+  scotty 3230 $ do
      
     get "/" $ do
       text ("Bienvenido a un servicio REST construido con Haskell, ingrese a /menus para ver la lista de menus")
@@ -69,8 +106,20 @@ main = do
       
     post "/menus" $ do
       menu <- (jsonData :: ActionM Menu)
-      response <- liftIO (execute conn "insert into menu (name,description,price,restaurant) values (?,?,?,?)" ((name menu), (description menu), (price menu),(restaurant menu)))
-      json (menu)
+      response <- liftIO $ try $ D.execute conn "insert into menu (name,description,price,restaurant) values (?,?,?,?)" ((name menu), (description menu), (price menu),(restaurant menu))
+      case response of
+        Right _ -> json (Resultado {tipo= Just success, mensaje= Just "Menu agregado"}) >> status created201
+        Left e -> json (Resultado {tipo= Just error', mensaje= Just (show $ D.sqlErrorMsg e)})
+
+
+    post "/cliente" $ do
+      client <- (jsonData :: ActionM Client)
+      response <- liftIO $ try $ D.execute conn "insert into client (username,name,lastname,id,email,password,phone,cellphone) values (?,?,?,?,?,?,?,?)" ((username client),(nameClient client),(lastname client),(idClient client),(email client),(password client),(phone client),(cellphone client))
+      case response of
+        Right _ -> json (Resultado {tipo= Just success, mensaje= Just "Cliente agregado"}) >> status created201
+        Left (constraintViolation -> Just (UniqueViolation _)) -> json (Resultado {tipo= Just error', mensaje= Just "Ya existe un cliente con el mismo username"})>> status badRequest400
+        Left e -> json (Resultado {tipo= Just error', mensaje= Just (show $ D.sqlErrorMsg e)})
+
 
     
 
