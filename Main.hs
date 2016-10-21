@@ -88,9 +88,9 @@ getAllMenus c = do
 main = do
   putStrLn "Starting Server..."
   conn <- D.connectPostgreSQL  "postgres://xlyrtaxdwdozqh:ml6B7YXEWvGLdpcw5ty-BDrcne@ec2-50-19-240-113.compute-1.amazonaws.com:5432/dcku066iig1lq1"
-  --env <- getEnvironment
-  --let port = maybe 8080 read $ lookup "PORT" env
-  scotty 3230 $ do
+  env <- getEnvironment
+  let port = maybe 8080 read $ lookup "PORT" env
+  scotty port $ do
      
     get "/" $ do
       text ("Bienvenido a un servicio REST construido con Haskell, ingrese a /menus para ver la lista de menus")
