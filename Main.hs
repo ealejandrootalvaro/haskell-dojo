@@ -82,6 +82,12 @@ getAllMenus :: D.Connection -> IO [Menu]
 getAllMenus c = do
   list <- (D.query_ c "select * from menu" :: IO [Menu])
   return list
+  
+  
+getAllClientes :: D.Connection -> IO [Client]
+getAllClientes c = do
+  list <- (D.query_ c "select * from client" :: IO [Client])
+  return list
 
 
 
@@ -112,13 +118,17 @@ main = do
         Left e -> json (Resultado {tipo= Just error', mensaje= Just (show $ D.sqlErrorMsg e)})
 
 
-    post "/cliente" $ do
+    post "/clientes" $ do
       client <- (jsonData :: ActionM Client)
       response <- liftIO $ try $ D.execute conn "insert into client (username,name,lastname,id,email,password,phone,cellphone) values (?,?,?,?,?,?,?,?)" ((username client),(nameClient client),(lastname client),(idClient client),(email client),(password client),(phone client),(cellphone client))
       case response of
         Right _ -> json (Resultado {tipo= Just success, mensaje= Just "Cliente agregado"}) >> status created201
         Left (constraintViolation -> Just (UniqueViolation _)) -> json (Resultado {tipo= Just error', mensaje= Just "Ya existe un cliente con el mismo username"})>> status badRequest400
         Left e -> json (Resultado {tipo= Just error', mensaje= Just (show $ D.sqlErrorMsg e)})
+        
+    get "/clientes" $ do
+      variable <- liftIO (getAllClientes conn)
+      json variable
 
 
     
