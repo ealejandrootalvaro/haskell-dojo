@@ -93,7 +93,7 @@ getAllClientes c = do
 
 main = do
   putStrLn "Starting Server..."
-  conn <- D.connectPostgreSQL  "postgres://xlyrtaxdwdozqh:ml6B7YXEWvGLdpcw5ty-BDrcne@ec2-50-19-240-113.compute-1.amazonaws.com:5432/dcku066iig1lq1"
+  conn <- D.connectPostgreSQL  "postgresql://107.170.37.136:5432/restaurants"
   env <- getEnvironment
   let port = maybe 8080 read $ lookup "PORT" env
   scotty port $ do
